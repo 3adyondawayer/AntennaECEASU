@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antenna Parameters — Interactive Engineering Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<style>
+:root {
+  --bg:#eef2f7; --surface:#ffffff; --surface2:#f8fafc; --surface3:#f1f5f9;
+  --border:#e2e8f0; --border2:#cbd5e1;
+  --primary:#2563eb; --primary-l:#dbeafe; --primary-d:#1d4ed8;
+  --teal:#0891b2;   --teal-l:#cffafe;
+  --green:#059669;  --green-l:#d1fae5;
+  --warn:#d97706;   --warn-l:#fef3c7;
+  --purple:#7c3aed; --purple-l:#ede9fe;
+  --red:#dc2626;    --red-l:#fee2e2;
+  --text:#0f172a;   --text2:#475569; --text3:#94a3b8;
+  --sh:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
+  --sh2:0 4px 16px rgba(0,0,0,.09),0 1px 4px rgba(0,0,0,.05);
+  --r:12px; --r-sm:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',system-ui,sans-serif;min-height:100vh;line-height:1.5}
+
+/* ── Header ─────────────────────── */
+.hdr{background:linear-gradient(130deg,#0f2869 0%,#1e40af 40%,#0e7490 100%);padding:26px 24px 22px;text-align:center;position:relative;overflow:hidden}
+.hdr::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 0%,rgba(255,255,255,.08),transparent)}
+.hdr::after{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='20' cy='20' r='1' fill='white' fill-opacity='.06'/%3E%3C/svg%3E")}
+.hdr h1{font-size:1.8rem;font-weight:800;color:#fff;letter-spacing:-.5px;position:relative;z-index:1}
+.hdr .sub{color:rgba(255,255,255,.72);font-size:.82rem;margin-top:5px;font-weight:500;position:relative;z-index:1}
+.tags{display:flex;gap:6px;justify-content:center;margin-top:12px;flex-wrap:wrap;position:relative;z-index:1}
+.tag{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.9);font-size:.68rem;font-weight:700;padding:2px 10px;border-radius:20px;letter-spacing:.6px;text-transform:uppercase}
+
+/* ── Tabs ──────────────────────── */
+.tabs-wrap{background:var(--surface);border-bottom:2px solid var(--border);padding:0 20px;display:flex;gap:0;overflow-x:auto;scrollbar-width:none;position:sticky;top:0;z-index:100;box-shadow:var(--sh)}
+.tabs-wrap::-webkit-scrollbar{display:none}
+.tab-btn{background:none;border:none;border-bottom:3px solid transparent;color:var(--text3);padding:14px 16px 11px;cursor:pointer;font-size:.79rem;font-weight:700;font-family:inherit;white-space:nowrap;transition:color .2s,border-color .2s;margin-bottom:-2px}
+.tab-btn:hover{color:var(--primary)}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary)}
+
+/* ── Panels ─────────────────────── */
+.panel{display:none;padding:20px;animation:fadeUp .22s ease}
+.panel.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Grids ──────────────────────── */
+.g2{display:grid;grid-template-columns:1fr 1.4fr;gap:16px}
+.g2e{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+@media(max-width:900px){.g2,.g2e,.g3{grid-template-columns:1fr}}
+
+/* ── Cards ──────────────────────── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--sh)}
+.ctrl{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;box-shadow:var(--sh)}
+.ctrl h3{font-size:.75rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.9px;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.ctrl h3::before{content:'';display:inline-block;width:3px;height:13px;background:var(--primary);border-radius:2px}
+
+/* ── Form ───────────────────────── */
+label{display:flex;flex-direction:column;gap:4px;font-size:.77rem;color:var(--text2);font-weight:600;margin-bottom:11px}
+.lr{display:flex;justify-content:space-between;align-items:center}
+.val{color:var(--primary-d);font-weight:700;font-size:.82rem;background:var(--primary-l);padding:1px 7px;border-radius:5px;font-family:'JetBrains Mono',monospace}
+input[type=range]{width:100%;height:4px;accent-color:var(--primary);cursor:pointer;margin-top:3px}
+select{background:var(--surface2);color:var(--text);border:1.5px solid var(--border);padding:7px 10px;border-radius:var(--r-sm);font-size:.79rem;font-family:inherit;cursor:pointer;width:100%;transition:border-color .2s}
+select:focus{outline:none;border-color:var(--primary)}
+
+/* ── Concept cards ──────────────── */
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;transition:box-shadow .2s}
+.cc:hover{box-shadow:var(--sh2)}
+.cc h4{font-size:.82rem;font-weight:700;margin-bottom:5px}
+.cc p{font-size:.77rem;color:var(--text2);line-height:1.6}
+.formula{border-left:3px solid var(--primary);background:var(--surface2);padding:8px 12px;border-radius:0 6px 6px 0;font-family:'JetBrains Mono',monospace;font-size:.73rem;color:var(--primary-d);margin:7px 0;line-height:1.75}
+.cc.bl h4{color:var(--primary)}      .cc.bl .formula{border-left-color:var(--primary);color:var(--primary-d)}
+.cc.tl h4{color:var(--teal)}         .cc.tl .formula{border-left-color:var(--teal);color:#0e7490}
+.cc.gr h4{color:var(--green)}        .cc.gr .formula{border-left-color:var(--green);color:#047857}
+.cc.pp h4{color:var(--purple)}       .cc.pp .formula{border-left-color:var(--purple);color:#6d28d9}
+.cc.or h4{color:var(--warn)}         .cc.or .formula{border-left-color:var(--warn);color:#92400e}
+.cc.rd h4{color:var(--red)}          .cc.rd .formula{border-left-color:var(--red);color:#991b1b}
+
+/* ── Insight ────────────────────── */
+.insight{background:linear-gradient(135deg,var(--primary-l),#eff6ff);border:1px solid #bfdbfe;border-radius:var(--r-sm);padding:10px 14px;font-size:.77rem;color:#1e40af;line-height:1.6;margin:10px 0}
+.insight strong{font-weight:700}
+.insight-or{background:var(--warn-l);border-color:#fde68a;color:#92400e}
+.insight-gr{background:var(--green-l);border-color:#a7f3d0;color:#064e3b}
+
+/* ── KPI grid ───────────────────── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px;margin-top:10px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 10px 8px;text-align:center;transition:transform .2s,box-shadow .2s}
+.kpi:hover{transform:translateY(-1px);box-shadow:var(--sh2)}
+.kpi-lbl{font-size:.62rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.kpi-val{font-size:1.05rem;font-weight:800;color:var(--primary);font-family:'JetBrains Mono',monospace}
+.kpi-unit{font-size:.6rem;color:var(--text3);margin-top:2px}
+
+/* ── Plot box ───────────────────── */
+.pbox{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+
+/* ── Badges ─────────────────────── */
+.eq-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0}
+.badge{display:inline-flex;align-items:center;padding:4px 11px;border-radius:20px;font-size:.71rem;font-weight:700;font-family:'JetBrains Mono',monospace}
+.b-bl{background:var(--primary-l);color:var(--primary-d)}
+.b-tl{background:var(--teal-l);color:#0e7490}
+.b-gr{background:var(--green-l);color:#047857}
+.b-pp{background:var(--purple-l);color:#6d28d9}
+.b-or{background:var(--warn-l);color:#92400e}
+.arrow{color:var(--text3);font-size:1rem}
+hr{border:none;border-top:1px solid var(--border);margin:14px 0}
+
+/* ── Section header ─────────────── */
+.sec-hdr{font-size:.7rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sec-hdr::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── Button ─────────────────────── */
+.btn{background:var(--primary);color:#fff;border:none;padding:8px 16px;border-radius:var(--r-sm);font-family:inherit;font-size:.8rem;font-weight:700;cursor:pointer;transition:background .15s,transform .1s}
+.btn:hover{background:var(--primary-d)}
+.btn:active{transform:scale(.97)}
+.btn-out{background:transparent;color:var(--primary);border:1.5px solid var(--primary)}
+.btn-out:hover{background:var(--primary-l);background-color:var(--primary-l)}
+
+/* ── Table ──────────────────────── */
+.ref-tbl{width:100%;border-collapse:collapse;font-size:.77rem}
+.ref-tbl th{padding:9px 12px;text-align:left;color:var(--text2);font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;background:var(--surface2);border-bottom:2px solid var(--border)}
+.ref-tbl th:not(:first-child){text-align:center}
+.ref-tbl td{padding:8px 12px;border-bottom:1px solid var(--border)}
+.ref-tbl td:not(:first-child){text-align:center;font-family:'JetBrains Mono',monospace;font-size:.73rem}
+.ref-tbl tr:nth-child(even){background:var(--surface2)}
+.ref-tbl .dval{color:var(--primary);font-weight:800}
+
+/* ── Legend ─────────────────────── */
+.leg-row{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0}
+.leg{display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600}
+.ld{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.ll{width:20px;height:3px;flex-shrink:0;border-radius:2px}
+
+/* ── Canvas ─────────────────────── */
+#pCanvas{display:block;width:100%;border-radius:var(--r-sm)}
+
+/* ── Near/Far field chip ─────────── */
+.chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.67rem;font-weight:700;letter-spacing:.3px}
+.chip-blue{background:var(--primary-l);color:var(--primary-d)}
+.chip-red{background:var(--red-l);color:#991b1b}
+.chip-or{background:var(--warn-l);color:#92400e}
+
+/* ── Scrollbar ──────────────────── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <h1>⚡ Antenna Radiation Parameters</h1>
+  <p class="sub">Interactive Engineering Lab · Power Density · Radiation Intensity · Directivity · Gain · Poynting Vector</p>
+  <div class="tags">
+    <span class="tag">Balanis</span><span class="tag">Haykin</span>
+    <span class="tag">9 Antenna Types</span><span class="tag">Poynting Vector</span>
+    <span class="tag">Far Field</span><span class="tag">Link Budget</span>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <button class="tab-btn active"  onclick="sw(0)">📐 Concepts</button>
+  <button class="tab-btn"         onclick="sw(1)">🌐 3D Pattern</button>
+  <button class="tab-btn"         onclick="sw(2)">📡 2D Polar</button>
+  <button class="tab-btn"         onclick="sw(3)">🔵 Solid Angle</button>
+  <button class="tab-btn"         onclick="sw(4)">🌊 Poynting Vector</button>
+  <button class="tab-btn"         onclick="sw(5)">📊 Power &amp; Distance</button>
+  <button class="tab-btn"         onclick="sw(6)">⚖️ Compare</button>
+</div>
+
+<!-- ═══════ TAB 0: CONCEPTS ═══════ -->
+<div class="panel active" id="p0">
+  <div class="g2e">
+    <div>
+      <div class="cc bl">
+        <h4>🌊 Radiation Power Density W(θ,φ)</h4>
+        <p>Power per unit area on a sphere of radius r. Always decreases as 1/r² regardless of direction — the inverse square law.</p>
+        <div class="formula">W(θ,φ) = dP / dA  [W/m²]
+W(r,θ,φ) = U(θ,φ) / r²
+W_iso   = P_rad / (4π r²)  [isotropic]</div>
+        <div class="insight"><strong>Key idea:</strong> W depends on both direction (θ,φ) AND distance r. Double the distance → ¼ the power density (−6 dB).</div>
+      </div>
+      <div class="cc tl">
+        <h4>💡 Radiation Intensity U(θ,φ)</h4>
+        <p>Power per unit solid angle. Removes the 1/r² dependence — a purely directional antenna property independent of distance.</p>
+        <div class="formula">U(θ,φ) = r² · W(θ,φ)  [W/sr]
+P_rad  = ∬ U(θ,φ) sinθ dθ dφ
+U_avg  = P_rad / 4π  [isotropic equivalent]</div>
+      </div>
+      <div class="cc gr">
+        <h4>🔵 Solid Angle Ω</h4>
+        <p>3D extension of a planar angle. Measured in steradians (sr). Think of it as the "shadow area" on a unit sphere cast by a surface patch.</p>
+        <div class="formula">dΩ = sinθ dθ dφ  [sr]
+Ω_sphere = ∫₀²π ∫₀π sinθ dθ dφ = 4π sr
+Half-sphere: 2π sr · Cone 45°: ≈ 1.84 sr</div>
+      </div>
+    </div>
+    <div>
+      <div class="cc pp">
+        <h4>📐 Beam Solid Angle Ω_A</h4>
+        <p>Solid angle the antenna would need if radiating uniformly at its peak intensity. A narrow beam → small Ω_A → high directivity.</p>
+        <div class="formula">Ω_A = ∬ F(θ,φ) dΩ  [sr]   where F = U/U_max
+P_rad = U_max · Ω_A    (power = peak × beam)</div>
+      </div>
+      <div class="cc or">
+        <h4>🎯 Directivity D</h4>
+        <p>Ratio of radiation intensity in a given direction to the spherical average. Purely geometric — no losses included.</p>
+        <div class="formula">D(θ,φ) = U(θ,φ) / U_avg = 4π·U / P_rad
+D_max = 4π / Ω_A
+D · Ω_A = 4π  ← invariant — always true!</div>
+        <div class="insight insight-or"><strong>Reference values:</strong> Isotropic: D=1 (0 dBi) · Short dipole: D=1.5 (1.76 dBi) · Half-wave dipole: D=1.64 (2.15 dBi)</div>
+      </div>
+      <div class="cc bl">
+        <h4>📶 Gain G</h4>
+        <p>Directivity weighted by radiation efficiency η. Accounts for ohmic losses in the antenna material. G ≤ D always.</p>
+        <div class="formula">G(θ,φ) = η · D(θ,φ)     (0 ≤ η ≤ 1)
+G_max = η · D_max
+G[dBi] = 10·log₁₀(G_max)   (η=1 → G=D)</div>
+      </div>
+    </div>
+  </div>
+  <hr>
+  <div class="sec-hdr">Parameter Relationships</div>
+  <div class="eq-row">
+    <span class="badge b-bl">W [W/m²]</span><span class="arrow">×r² →</span>
+    <span class="badge b-tl">U [W/sr]</span><span class="arrow">÷ U_avg →</span>
+    <span class="badge b-or">D [—]</span><span class="arrow">×η →</span>
+    <span class="badge b-pp">G [—]</span><span class="arrow">→ 10·log₁₀ →</span>
+    <span class="badge b-bl">G [dBi]</span>
+  </div>
+  <div class="eq-row" style="margin-top:8px">
+    <span class="badge b-tl">Ω_A = ∬F dΩ</span><span class="arrow">→</span>
+    <span class="badge b-or">D = 4π / Ω_A</span><span class="arrow">→</span>
+    <span class="badge b-gr">D · Ω_A = 4π (invariant)</span>
+  </div>
+  <hr>
+  <div class="sec-hdr">Antenna Quick Reference</div>
+  <div style="overflow-x:auto">
+    <table class="ref-tbl">
+      <thead><tr><th>Antenna Type</th><th>Pattern F(θ)</th><th>D_max</th><th>dBi</th><th>Ω_A [sr]</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Isotropic</strong></td><td>1</td><td class="dval">1.000</td><td>0.00</td><td>4π ≈ 12.57</td><td>Theoretical reference</td></tr>
+        <tr><td><strong>Short Dipole</strong></td><td>sin²θ</td><td class="dval">1.500</td><td>1.76</td><td>8π/3 ≈ 8.38</td><td>ℓ ≪ λ, Hertzian dipole</td></tr>
+        <tr><td><strong>Half-Wave Dipole</strong></td><td>cos²(π/2·cosθ)/sin²θ</td><td class="dval">1.642</td><td>2.15</td><td>≈ 7.66</td><td>Most common reference</td></tr>
+        <tr><td><strong>Cosine Beam n=2</strong></td><td>cos²θ, θ∈[0,π/2]</td><td class="dval">3.000</td><td>4.77</td><td>4π/3 ≈ 4.19</td><td>Broadside array approx.</td></tr>
+        <tr><td><strong>Patch/Microstrip</strong></td><td>cos²θ · 𝟙[θ&lt;90°]</td><td class="dval">≈ 6.0</td><td>7.78</td><td>≈ 2.09</td><td>Half-space radiation</td></tr>
+        <tr><td><strong>Small Loop</strong></td><td>cos²θ (H-plane)</td><td class="dval">1.500</td><td>1.76</td><td>8π/3</td><td>Magnetic dipole</td></tr>
+        <tr><td><strong>End-Fire Array</strong></td><td>[(1+cosθ)/2]²</td><td class="dval">≈ 3.3</td><td>≈ 5.2</td><td>≈ 3.8</td><td>Cardioid²</td></tr>
+        <tr><td><strong>Yagi-Uda (est.)</strong></td><td>cardioid × cos²(θ/2)</td><td class="dval">≈ 7–15</td><td>≈ 9–12</td><td>≈ 0.9–1.8</td><td>Depends on elements</td></tr>
+        <tr><td><strong>Pencil Beam</strong></td><td>exp(−n·θ²)</td><td class="dval">≫ 1</td><td>varies</td><td>≪ 1</td><td>Reflector/phased array</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════ TAB 1: 3D PATTERN ═══════ -->
+<div class="panel" id="p1">
+  <div class="g2">
+    <div>
+      <div class="ctrl">
+        <h3>Pattern Controls</h3>
+        <label><div class="lr"><span>Antenna Type</span></div>
+          <select id="pat3d" onchange="u3d()">
+            <option value="isotropic">Isotropic (D=1)</option>
+            <option value="dipole" selected>Short Dipole (D≈1.5)</option>
+            <option value="halfdipole">Half-Wave Dipole (D≈1.64)</option>
+            <option value="cosine">Cosine Beam cosⁿθ</option>
+            <option value="pencil">Pencil Beam (Gaussian)</option>
+            <option value="patch">Patch Antenna (half-space)</option>
+            <option value="yagi">Yagi-Uda (approx.)</option>
+            <option value="endfire">End-Fire Array</option>
+            <option value="loop">Small Loop</option>
+          </select>
+        </label>
+        <label><div class="lr"><span>Sharpness n</span><span class="val" id="v-n3">2</span></div>
+          <input type="range" id="s-n3" min="1" max="12" step=".5" value="2" oninput="$('v-n3').textContent=this.value;u3d()">
+        </label>
+        <label><div class="lr"><span>Efficiency η</span><span class="val" id="v-e3">0.90</span></div>
+          <input type="range" id="s-e3" min=".1" max="1" step=".05" value=".9" oninput="$('v-e3').textContent=f2(this.value);u3d()">
+        </label>
+        <label><div class="lr"><span>Radiated Power P</span><span class="val" id="v-p3">1.0 W</span></div>
+          <input type="range" id="s-p3" min=".1" max="100" step=".1" value="1" oninput="$('v-p3').textContent=f1(this.value)+' W';u3d()">
+        </label>
+        <label><div class="lr"><span>Distance r</span><span class="val" id="v-r3">1.0 m</span></div>
+          <input type="range" id="s-r3" min=".5" max="10" step=".5" value="1" oninput="$('v-r3').textContent=f1(this.value)+' m';u3d()">
+        </label>
+      </div>
+      <div class="kpi-grid" id="kpi3d" style="margin-top:14px"></div>
+      <div class="insight" style="margin-top:12px">
+        <strong>Golden Rule:</strong> D·Ω_A = 4π always — a narrower beam always means higher directivity, no exceptions.
+      </div>
+    </div>
+    <div class="pbox" id="plot3d" style="height:500px"></div>
+  </div>
+</div>
+
+<!-- ═══════ TAB 2: 2D POLAR ═══════ -->
+<div class="panel" id="p2">
+  <div class="g2">
+    <div>
+      <div class="ctrl">
+        <h3>E-Plane Pattern (φ=0°)</h3>
+        <label><div class="lr"><span>Antenna Type</span></div>
+          <select id="pat2d" onchange="u2d()">
+            <option value="isotropic">Isotropic</option>
+            <option value="dipole" selected>Short Dipole</option>
+            <option value="halfdipole">Half-Wave Dipole</option>
+            <option value="cosine">Cosine Beam cosⁿθ</option>
+            <option value="pencil">Pencil Beam</option>
+            <option value="patch">Patch Antenna</option>
+            <option value="yagi">Yagi-Uda</option>
+            <option value="endfire">End-Fire Array</option>
+            <option value="loop">Small Loop</option>
+          </select>
+        </label>
+        <label><div class="lr"><span>Sharpness n</span><span class="val" id="v-n2">2</span></div>
+          <input type="range" id="s-n2" min="1" max="12" step=".5" value="2" oninput="$('v-n2').textContent=this.value;u2d()">
+        </label>
+        <label><div class="lr"><span>Scale</span></div>
+          <select id="sc2d" onchange="u2d()">
+            <option value="linear">Linear</option>
+            <option value="dB" selected>dB (normalized)</option>
+          </select>
+        </label>
+      </div>
+      <div class="cc tl" style="margin-top:12px">
+        <h4>📏 Beam Metrics</h4>
+        <div class="formula" id="hpbw-f">HPBW: — ° &nbsp;|&nbsp; FNBW: — °</div>
+        <p id="hpbw-p" style="margin-top:5px;font-size:.75rem">Adjust pattern to see metrics...</p>
+      </div>
+      <div class="cc bl" style="margin-top:10px">
+        <h4>📖 How to Read Polar Plots</h4>
+        <p>Each radial distance represents gain in that direction (normalized). The <strong>outer ring = 0 dB</strong> (peak). Inner rings are −3, −10, −20, −30 dB contours. The red dashed circle marks the −3 dB half-power points.</p>
+      </div>
+      <div class="cc gr" style="margin-top:10px">
+        <h4>↔️ E-plane vs H-plane</h4>
+        <p>The E-plane (φ=0) contains the electric field vector and the maximum radiation direction. The H-plane (φ=90°) is orthogonal. Both together define the full 3D pattern.</p>
+      </div>
+    </div>
+    <div class="pbox" id="plotPolar" style="height:500px"></div>
+  </div>
+</div>
+
+<!-- ═══════ TAB 3: SOLID ANGLE ═══════ -->
+<div class="panel" id="p3">
+  <div class="g2">
+    <div>
+      <div class="ctrl">
+        <h3>Solid Angle Visualizer</h3>
+        <label><div class="lr"><span>Half-cone angle θ_max</span><span class="val" id="v-th">45°</span></div>
+          <input type="range" id="s-th" min="5" max="90" step="1" value="45" oninput="$('v-th').textContent=this.value+'°';uSolid()">
+        </label>
+        <label><div class="lr"><span>Azimuth extent φ_max</span><span class="val" id="v-ph">360°</span></div>
+          <input type="range" id="s-ph" min="30" max="360" step="10" value="360" oninput="$('v-ph').textContent=this.value+'°';uSolid()">
+        </label>
+      </div>
+      <div class="kpi-grid" id="kpiSolid" style="margin-top:12px"></div>
+      <div class="cc gr" style="margin-top:12px">
+        <h4>📐 Solid Angle Formula</h4>
+        <div class="formula">Ω = ∫₀^φ_max ∫₀^θ_max sinθ dθ dφ
+  = φ_max · (1 − cosθ_max)  [sr]
+
+Full sphere: 4π ≈ 12.566 sr
+Half sphere: 2π ≈ 6.283 sr
+Cone θ=45°: ≈ 1.840 sr
+Cone θ=60°: ≈ 3.142 sr = π sr</div>
+      </div>
+      <div class="insight insight-gr">
+        <strong>Analogy:</strong> Just as a 2D angle θ = arc/radius, a solid angle Ω = area/r². A full sphere subtends 4π steradians at its center — this is why D_iso = 1 and D·Ω_A = 4π.
+      </div>
+    </div>
+    <div class="pbox" id="plotSolid" style="height:500px"></div>
+  </div>
+</div>
+
+<!-- ═══════ TAB 4: POYNTING VECTOR ═══════ -->
+<div class="panel" id="p4">
+  <div class="g2">
+    <div>
+      <div class="ctrl">
+        <h3>Poynting Vector Animator</h3>
+        <label><div class="lr"><span>Antenna</span></div>
+          <select id="pAnt" onchange="resetP()">
+            <option value="dipole" selected>Short Dipole (z-axis, sin²θ)</option>
+            <option value="isotropic">Isotropic Source</option>
+            <option value="patch">Patch (half-space, cos²θ)</option>
+            <option value="endfire">End-Fire (cardioid)</option>
+          </select>
+        </label>
+        <label><div class="lr"><span>Wave Speed</span><span class="val" id="v-spd">1.0×</span></div>
+          <input type="range" id="s-spd" min=".2" max="3" step=".1" value="1" oninput="$('v-spd').textContent=f1(this.value)+'×'">
+        </label>
+        <label><div class="lr"><span>Display Mode</span></div>
+          <select id="pMode">
+            <option value="both" selected>S vectors + E-field lines</option>
+            <option value="S">Poynting vectors (S) only</option>
+            <option value="wave">Wavefronts + intensity map</option>
+          </select>
+        </label>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="btn" id="pPlayBtn" onclick="toggleP()">⏸ Pause</button>
+          <button class="btn btn-out" onclick="resetP()">↺ Reset</button>
+        </div>
+      </div>
+
+      <div class="cc rd" style="margin-top:12px">
+        <h4>🌊 What is S = E × H?</h4>
+        <p>The Poynting vector <strong>S</strong> gives the instantaneous power flow per unit area (W/m²). Its time-average equals the radiation power density W.</p>
+        <div class="formula">S  = E × H             [W/m²]
+⟨S⟩ = ½ Re(E × H*)   [time-avg]
+|⟨S⟩| = |E|² / (2η₀)  [far field]
+η₀ = 120π ≈ 377 Ω     [free space]</div>
+      </div>
+
+      <div class="cc tl" style="margin-top:10px">
+        <h4>📡 Far-Field Geometry</h4>
+        <p>In the far field (r ≫ λ): E ⊥ H ⊥ r̂, all mutually perpendicular. The wave looks locally planar.</p>
+        <div class="formula">E_θ ∝ F(θ,φ) · e^{−jkr} / r
+H_φ = E_θ / η₀         (TEM wave)
+S_r = |E_θ|² / (2η₀)  ∝ F²(θ)/r²</div>
+      </div>
+
+      <div class="leg-row" style="margin-top:10px">
+        <div class="leg"><div class="ld" style="background:#2563eb"></div>Poynting S (radially outward)</div>
+        <div class="leg"><div class="ld" style="background:#dc2626"></div>E-field (transverse θ̂)</div>
+        <div class="leg"><div class="ll" style="background:#0891b2"></div>Wavefronts</div>
+      </div>
+
+      <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+        <span class="chip chip-blue">Far field: r &gt; 2D²/λ</span>
+        <span class="chip chip-or">Fresnel: r ~ D²/λ</span>
+        <span class="chip chip-red">Near field: r &lt; λ/2π</span>
+      </div>
+    </div>
+    <div class="pbox" style="padding:14px">
+      <canvas id="pCanvas" width="600" height="520"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ TAB 5: POWER vs DISTANCE ═══════ -->
+<div class="panel" id="p5">
+  <div class="g2">
+    <div>
+      <div class="ctrl">
+        <h3>Power Density vs Distance</h3>
+        <label><div class="lr"><span>Antenna Type</span></div>
+          <select id="patD" onchange="uDens()">
+            <option value="isotropic">Isotropic</option>
+            <option value="dipole" selected>Short Dipole</option>
+            <option value="halfdipole">Half-Wave Dipole</option>
+            <option value="cosine">Cosine Beam n=2</option>
+            <option value="patch">Patch Antenna</option>
+            <option value="yagi">Yagi-Uda</option>
+          </select>
+        </label>
+        <label><div class="lr"><span>Transmit Power P</span><span class="val" id="v-pd">10.0 W</span></div>
+          <input type="range" id="s-pd" min="1" max="1000" step="1" value="10" oninput="$('v-pd').textContent=f1(this.value)+' W';uDens()">
+        </label>
+        <label><div class="lr"><span>Max Distance r_max</span><span class="val" id="v-rmax">100 m</span></div>
+          <input type="range" id="s-rmax" min="10" max="5000" step="10" value="100" oninput="$('v-rmax').textContent=this.value+' m';uDens()">
+        </label>
+        <label><div class="lr"><span>Frequency f</span><span class="val" id="v-freq">2.4 GHz</span></div>
+          <input type="range" id="s-freq" min="0.1" max="60" step=".1" value="2.4" oninput="$('v-freq').textContent=f1(this.value)+' GHz';uDens()">
+        </label>
+      </div>
+
+      <div class="cc or" style="margin-top:12px">
+        <h4>📉 Inverse Square Law</h4>
+        <div class="formula">W(r) = D · P / (4π r²)   [W/m²]
+W_iso = P / (4π r²)
+FSPL  = 20·log(4πr/λ) + 20·log(f)  [dB]
+Rule:  ×2 distance → −6 dB power density</div>
+        <p id="wInfo" style="font-size:.74rem;color:var(--warn);margin-top:7px;font-weight:700"></p>
+      </div>
+
+      <div class="cc bl" style="margin-top:10px">
+        <h4>📡 Link Budget Calculator</h4>
+        <p style="font-size:.74rem;margin-bottom:6px;color:var(--text2)">Effective isotropic radiated power (EIRP) and received power estimate:</p>
+        <div class="formula" id="linkBudget">Set parameters above...</div>
+      </div>
+
+      <div class="insight insight-or" style="margin-top:10px">
+        <strong>Path Loss:</strong> The 1/r² spreading loss is the dominant factor in wireless links. Gain cannot overcome it — it only shifts the curve up, maintaining the same slope.
+      </div>
+    </div>
+    <div class="pbox" id="plotDens" style="height:500px"></div>
+  </div>
+</div>
+
+<!-- ═══════ TAB 6: COMPARE ═══════ -->
+<div class="panel" id="p6">
+  <div class="g3" style="margin-bottom:16px">
+    <div class="ctrl" style="border-top:3px solid var(--primary)">
+      <h3 style="color:var(--primary)">Antenna A</h3>
+      <label><select id="tA" onchange="uCmp()">
+        <option value="dipole" selected>Short Dipole</option>
+        <option value="halfdipole">Half-Wave Dipole</option>
+        <option value="isotropic">Isotropic</option>
+        <option value="cosine">Cosine n=2</option>
+        <option value="cosine4">Cosine n=4</option>
+        <option value="pencil">Pencil Beam</option>
+        <option value="patch">Patch Antenna</option>
+        <option value="yagi">Yagi-Uda</option>
+        <option value="endfire">End-Fire</option>
+      </select></label>
+      <label><div class="lr"><span>η_A</span><span class="val" id="v-eA">1.00</span></div>
+        <input type="range" id="s-eA" min=".1" max="1" step=".05" value="1" oninput="$('v-eA').textContent=f2(this.value);uCmp()">
+      </label>
+    </div>
+    <div class="ctrl" style="border-top:3px solid var(--teal)">
+      <h3 style="color:var(--teal)">Antenna B</h3>
+      <label><select id="tB" onchange="uCmp()">
+        <option value="dipole">Short Dipole</option>
+        <option value="halfdipole">Half-Wave Dipole</option>
+        <option value="isotropic">Isotropic</option>
+        <option value="cosine" selected>Cosine n=2</option>
+        <option value="cosine4">Cosine n=4</option>
+        <option value="pencil">Pencil Beam</option>
+        <option value="patch">Patch Antenna</option>
+        <option value="yagi">Yagi-Uda</option>
+        <option value="endfire">End-Fire</option>
+      </select></label>
+      <label><div class="lr"><span>η_B</span><span class="val" id="v-eB">0.80</span></div>
+        <input type="range" id="s-eB" min=".1" max="1" step=".05" value=".8" oninput="$('v-eB').textContent=f2(this.value);uCmp()">
+      </label>
+    </div>
+    <div class="card" id="cmpKPI" style="display:flex;flex-direction:column;justify-content:center;gap:8px"></div>
+  </div>
+  <div class="pbox" id="plotCmp" style="height:420px"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//   UTILITIES
+// ═══════════════════════════════════════
+const $ = id => document.getElementById(id);
+const f1 = v => parseFloat(v).toFixed(1);
+const f2 = v => parseFloat(v).toFixed(2);
+const f3 = v => parseFloat(v).toFixed(3);
+const f4 = v => parseFloat(v).toFixed(4);
+const dB  = v => (10*Math.log10(Math.max(v,1e-12))).toFixed(2);
+
+// ═══════════════════════════════════════
+//   PATTERN FUNCTIONS
+// ═══════════════════════════════════════
+function F(type, th, ph, n=2) {
+  switch(type) {
+    case 'isotropic': return 1;
+    case 'dipole':    return Math.pow(Math.sin(th),2);
+    case 'halfdipole': {
+      const s=Math.sin(th); if(Math.abs(s)<1e-9) return 0;
+      const c=Math.cos(Math.PI/2*Math.cos(th));
+      return c*c/(s*s);
+    }
+    case 'cosine':    return Math.pow(Math.max(0,Math.cos(th)),n);
+    case 'cosine4':   return Math.pow(Math.max(0,Math.cos(th)),4);
+    case 'pencil':    return Math.exp(-n*th*th/Math.pow(Math.PI/9,2));
+    case 'patch':     return th<=Math.PI/2 ? Math.pow(Math.cos(th),2) : 0;
+    case 'yagi': {
+      const c=(1+Math.cos(th))/2;
+      return c*Math.pow(Math.max(0,Math.cos(th/2)),2);
+    }
+    case 'endfire':   return Math.pow((1+Math.cos(th))/2, 2);
+    case 'loop':      return Math.pow(Math.cos(th),2);
+    default:          return 1;
+  }
+}
+
+function computeD(type, n=2) {
+  // Numerical integration (Riemann)
+  const Nt=200, Np=200;
+  const dt=Math.PI/Nt, dp=2*Math.PI/Np;
+  let Pr=0, Fm=0;
+  for(let i=0;i<Nt;i++){
+    const th=(i+.5)*dt;
+    for(let j=0;j<Np;j++){
+      const ph=(j+.5)*dp;
+      const v=F(type,th,ph,n);
+      Pr+=v*Math.sin(th)*dt*dp;
+      if(v>Fm) Fm=v;
+    }
+  }
+  return Pr>0 ? 4*Math.PI*Fm/Pr : 1;
+}
+
+// ═══════════════════════════════════════
+//   TAB SWITCHING
+// ═══════════════════════════════════════
+const panels = document.querySelectorAll('.panel');
+const tbtns  = document.querySelectorAll('.tab-btn');
+const inited = {};
+
+function sw(i) {
+  panels.forEach((p,k)=>p.classList.toggle('active',k===i));
+  tbtns .forEach((b,k)=>b.classList.toggle('active',k===i));
+  if(!inited[i]){ inited[i]=true;
+    if(i===1) u3d();
+    if(i===2) u2d();
+    if(i===3) uSolid();
+    if(i===4) initP();
+    if(i===5) uDens();
+    if(i===6) uCmp();
+  }
+}
+inited[0]=true;
+
+// ═══════════════════════════════════════
+//   PLOTLY THEME
+// ═══════════════════════════════════════
+const PLY = {
+  paper_bgcolor:'#ffffff', plot_bgcolor:'#f8fafc',
+  font:{family:"'Plus Jakarta Sans',system-ui,sans-serif",color:'#0f172a',size:11},
+  margin:{t:44,r:20,b:44,l:54}
+};
+const CS = [
+  [0,'#dbeafe'],[.2,'#60a5fa'],[.45,'#2563eb'],
+  [.65,'#7c3aed'],[.82,'#dc2626'],[1,'#f59e0b']
+];
+
+function kpiHTML(rows) {
+  return rows.map(([l,v,u])=>`
+    <div class="kpi">
+      <div class="kpi-lbl">${l}</div>
+      <div class="kpi-val">${v}</div>
+      <div class="kpi-unit">${u}</div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════
+//   TAB 1 — 3D PATTERN
+// ═══════════════════════════════════════
+function u3d() {
+  const type=$('pat3d').value, n=+$('s-n3').value,
+        eta=+$('s-e3').value,  P=+$('s-p3').value, r=+$('s-r3').value;
+  const D=computeD(type,n), G=eta*D, OmA=4*Math.PI/D;
+  const Umax=P*D/(4*Math.PI), Uavg=P/(4*Math.PI), Wmax=Umax/(r*r);
+
+  $('kpi3d').innerHTML = kpiHTML([
+    ['Beam Ω_A', f3(OmA),  'sr'],
+    ['Directivity D', f3(D), dB(D)+' dBi'],
+    ['Gain G', f3(G),         dB(G)+' dBi'],
+    ['U_max', Umax.toFixed(4),'W/sr'],
+    ['U_avg', Uavg.toFixed(4),'W/sr'],
+    ['W_max @r='+r+'m', Wmax.toExponential(2),'W/m²'],
+    ['D × Ω_A', (D*OmA).toFixed(3),'= 4π ✓'],
+  ]);
+
+  const Nt=48,Np=72;
+  const X=[],Y=[],Z=[],C=[];
+  for(let i=0;i<=Nt;i++){
+    const xr=[],yr=[],zr=[],cr=[];
+    const th=Math.PI*i/Nt;
+    for(let j=0;j<=Np;j++){
+      const ph=2*Math.PI*j/Np, v=F(type,th,ph,n);
+      xr.push(v*Math.sin(th)*Math.cos(ph));
+      yr.push(v*Math.sin(th)*Math.sin(ph));
+      zr.push(v*Math.cos(th)); cr.push(v);
+    }
+    X.push(xr);Y.push(yr);Z.push(zr);C.push(cr);
+  }
+  Plotly.react('plot3d',[{
+    type:'surface',x:X,y:Y,z:Z,surfacecolor:C,colorscale:CS,showscale:true,
+    colorbar:{title:{text:'|F|',font:{color:'#64748b',size:10}},tickfont:{color:'#64748b',size:9},len:.65,thickness:12},
+    lighting:{ambient:.75,diffuse:.5,specular:.25},opacity:.93,
+    contours:{x:{show:false},y:{show:false},z:{show:false}}
+  }],{...PLY,
+    title:{text:`3D Pattern — <b>${type}</b>  |  D = ${f3(D)}, G = ${f3(G)}, ${dB(D)} dBi`,
+           font:{size:12,color:'#1e40af'},x:.5},
+    scene:{
+      bgcolor:'#f8fafc',aspectmode:'cube',
+      camera:{eye:{x:1.45,y:1.45,z:1.1}},
+      xaxis:{title:'X',color:'#64748b',gridcolor:'#e2e8f0',showbackground:true,backgroundcolor:'#f1f5f9'},
+      yaxis:{title:'Y',color:'#64748b',gridcolor:'#e2e8f0',showbackground:true,backgroundcolor:'#f1f5f9'},
+      zaxis:{title:'Z',color:'#64748b',gridcolor:'#e2e8f0',showbackground:true,backgroundcolor:'#f1f5f9'},
+    },margin:{t:50,r:80,b:10,l:10}
+  },{responsive:true});
+}
+
+// ═══════════════════════════════════════
+//   TAB 2 — 2D POLAR
+// ═══════════════════════════════════════
+function u2d() {
+  const type=$('pat2d').value, n=+$('s-n2').value, sc=$('sc2d').value;
+  const N=361;
+  const ths=Array.from({length:N},(_,i)=>i*Math.PI/(N-1));
+  let vals=ths.map(th=>F(type,th,0,n));
+  const Fm=Math.max(...vals); vals=vals.map(v=>v/Fm);
+
+  // HPBW
+  let hpbw=0,fnbw=0;
+  for(let i=1;i<N/2;i++){
+    if(!hpbw && vals[i]<.5 && vals[i-1]>=.5) hpbw=2*ths[i]*180/Math.PI;
+    if(!fnbw && vals[i]<.005 && vals[i-1]>=.005) fnbw=2*ths[i]*180/Math.PI;
+  }
+
+  const vFull=[...vals,...vals.slice(0,-1).reverse()];
+  const tDeg=[...ths,...ths.slice(0,-1).reverse().map(v=>2*Math.PI-v)].map(v=>v*180/Math.PI);
+
+  const rV = sc==='dB'
+    ? vFull.map(v=>Math.max(-40,20*Math.log10(Math.max(v,1e-8))))
+    : vFull;
+  const r3 = sc==='dB' ? -3 : .707;
+  const rng= sc==='dB' ? [-40,0] : [0,1];
+
+  Plotly.react('plotPolar',[
+    {type:'scatterpolar',mode:'lines',r:rV,theta:tDeg,
+     line:{color:'#2563eb',width:2.5},fill:'toself',fillcolor:'rgba(37,99,235,.09)',name:'E-plane'},
+    {type:'scatterpolar',mode:'lines',r:Array(361).fill(r3),theta:Array.from({length:361},(_,i)=>i),
+     line:{color:'rgba(220,38,38,.45)',width:1.5,dash:'dot'},name:'−3 dB'},
+  ],{...PLY,
+    polar:{bgcolor:'#f8fafc',
+           angularaxis:{color:'#64748b',gridcolor:'#e2e8f0',tickfont:{color:'#64748b'}},
+           radialaxis:{range:rng,color:'#64748b',gridcolor:'#e2e8f0',tickfont:{color:'#64748b'},title:{text:sc==='dB'?'dB':'Norm F',font:{color:'#64748b',size:10}}}},
+    legend:{font:{color:'#475569'},bgcolor:'rgba(255,255,255,.9)'},
+    title:{text:`2D E-Plane Pattern — <b>${type}</b>`,font:{size:12,color:'#1e40af'},x:.5},
+    showlegend:true,margin:{t:44,r:20,b:44,l:20}
+  },{responsive:true});
+
+  const hS=hpbw>0?hpbw.toFixed(1)+'°':'N/A', fS=fnbw>0?fnbw.toFixed(1)+'°':'N/A';
+  $('hpbw-f').textContent=`HPBW: ${hS}   |   FNBW: ${fS}`;
+  $('hpbw-p').textContent=`The beam concentrates ${hS} of angular width at half power.`;
+}
+
+// ═══════════════════════════════════════
+//   TAB 3 — SOLID ANGLE
+// ═══════════════════════════════════════
+function uSolid() {
+  const thM=+$('s-th').value*Math.PI/180, phM=+$('s-ph').value*Math.PI/180;
+  const Om=phM*(1-Math.cos(thM)), pct=(Om/(4*Math.PI)*100).toFixed(1);
+
+  $('kpiSolid').innerHTML=kpiHTML([
+    ['Solid Angle Ω', Om.toFixed(4),'sr'],
+    ['% of sphere', pct,'%'],
+    ['Remaining', (4*Math.PI-Om).toFixed(3),'sr'],
+    ['cosθ_max', Math.cos(thM).toFixed(4),''],
+  ]);
+
+  // Cone surface
+  const Nt=28,Np=56;
+  const X=[],Y=[],Z=[];
+  for(let i=0;i<=Nt;i++){
+    const xr=[],yr=[],zr=[]; const th=i*thM/Nt;
+    for(let j=0;j<=Np;j++){
+      const ph=j*phM/Np;
+      xr.push(Math.sin(th)*Math.cos(ph));yr.push(Math.sin(th)*Math.sin(ph));zr.push(Math.cos(th));
+    }X.push(xr);Y.push(yr);Z.push(zr);
+  }
+  // Unit sphere (faint)
+  const Xs=[],Ys=[],Zs=[];
+  for(let i=0;i<=36;i++){
+    const xr=[],yr=[],zr=[]; const th=i*Math.PI/36;
+    for(let j=0;j<=72;j++){
+      const ph=j*2*Math.PI/72;
+      xr.push(Math.sin(th)*Math.cos(ph));yr.push(Math.sin(th)*Math.sin(ph));zr.push(Math.cos(th));
+    }Xs.push(xr);Ys.push(yr);Zs.push(zr);
+  }
+  Plotly.react('plotSolid',[
+    {type:'surface',x:Xs,y:Ys,z:Zs,colorscale:[[0,'rgba(226,232,240,.15)'],[1,'rgba(226,232,240,.15)']],showscale:false,opacity:.18,hoverinfo:'skip'},
+    {type:'surface',x:X,y:Y,z:Z,colorscale:[[0,'#93c5fd'],[.5,'#3b82f6'],[1,'#1d4ed8']],showscale:false,opacity:.82}
+  ],{...PLY,
+    title:{text:`Solid Angle: Ω = ${Om.toFixed(3)} sr  (${pct}% of sphere)`,font:{size:12,color:'#1e40af'},x:.5},
+    scene:{bgcolor:'#f8fafc',aspectmode:'cube',camera:{eye:{x:1.7,y:1.2,z:1.1}},
+      xaxis:{title:'X',color:'#64748b',showbackground:true,backgroundcolor:'#f1f5f9',gridcolor:'#e2e8f0'},
+      yaxis:{title:'Y',color:'#64748b',showbackground:true,backgroundcolor:'#f1f5f9',gridcolor:'#e2e8f0'},
+      zaxis:{title:'Z',color:'#64748b',showbackground:true,backgroundcolor:'#f1f5f9',gridcolor:'#e2e8f0'}},
+    margin:{t:50,r:20,b:10,l:10}
+  },{responsive:true});
+}
+
+// ═══════════════════════════════════════
+//   TAB 4 — POYNTING VECTOR ANIMATION
+// ═══════════════════════════════════════
+let pRAF=null, pT=0, pRunning=true;
+
+function initP() {
+  pRunning=true; $('pPlayBtn').textContent='⏸ Pause';
+  if(pRAF) cancelAnimationFrame(pRAF);
+  animP();
+}
+function toggleP() {
+  pRunning=!pRunning;
+  $('pPlayBtn').textContent=pRunning?'⏸ Pause':'▶ Play';
+  if(pRunning) animP();
+}
+function resetP() {
+  pT=0; pRunning=true; $('pPlayBtn').textContent='⏸ Pause';
+  if(pRAF) cancelAnimationFrame(pRAF);
+  animP();
+}
+function animP() {
+  if(!pRunning) return;
+  pT+=0.04*(+$('s-spd').value);
+  drawP(pT);
+  pRAF=requestAnimationFrame(animP);
+}
+
+function drawP(t) {
+  const cv=$('pCanvas'); if(!cv) return;
+  const ctx=cv.getContext('2d');
+  // Resize to container
+  const W=cv.offsetWidth||600, H=Math.round(W*520/600);
+  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}
+  const cx=W/2, cy=H/2, maxR=Math.min(W,H)*.43;
+  const aType=$('pAnt').value, mode=$('pMode').value;
+
+  ctx.clearRect(0,0,W,H);
+
+  // ── Background ──
+  ctx.fillStyle='#f8fafc'; ctx.fillRect(0,0,W,H);
+
+  // ── Reference rings ──
+  for(let ri=1;ri<=4;ri++){
+    const rr=ri*maxR/4;
+    ctx.beginPath(); ctx.arc(cx,cy,rr,0,2*Math.PI);
+    ctx.strokeStyle='rgba(148,163,184,.18)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.font='9px Plus Jakarta Sans,sans-serif'; ctx.fillStyle='#94a3b8';
+    ctx.fillText((ri*.25).toFixed(2)+'r', cx+rr+3, cy-3);
+  }
+  // Axis lines
+  ctx.setLineDash([4,4]); ctx.strokeStyle='rgba(148,163,184,.3)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(cx,cy-maxR-10); ctx.lineTo(cx,cy+maxR+10); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx-maxR-10,cy); ctx.lineTo(cx+maxR+10,cy); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ── Intensity heat map (angular wedges) ──
+  const NW=180;
+  for(let ai=0;ai<NW;ai++){
+    const ph0=ai*2*Math.PI/NW-Math.PI/2;
+    const ph1=(ai+1)*2*Math.PI/NW-Math.PI/2;
+    const thCen=ai*Math.PI/NW; // theta from top
+    const Fv=F(aType,thCen,0,2);
+    if(Fv<.01) continue;
+    const numR=20;
+    for(let ri=0;ri<numR;ri++){
+      const r1=ri*maxR/numR, r2=(ri+1)*maxR/numR, rMid=(r1+r2)/2;
+      const wave=.5+.5*Math.cos(t*3-rMid/maxR*5*Math.PI);
+      const intensity=Fv*wave*(1-rMid/maxR*.4);
+      if(intensity<.04) continue;
+      const hue=200-intensity*160; // 200=blue → 40=amber
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,r2,ph0,ph1);
+      ctx.closePath();
+      ctx.fillStyle=`hsla(${hue},80%,55%,${intensity*.3})`;
+      ctx.fill();
+    }
+  }
+
+  // ── Animated wavefronts ──
+  if(mode!=='S'){
+    const nWaves=5;
+    for(let w=0;w<nWaves;w++){
+      const prog=((t*.45+w/nWaves)%1);
+      const wR=prog*maxR; if(wR<8) continue;
+      const alpha=(1-prog)*.65;
+      ctx.beginPath();
+      for(let ai=0;ai<=360;ai++){
+        const ph=ai*Math.PI/180;
+        // map canvas angle to 3D theta
+        const th3d=ph<=Math.PI ? ph : 2*Math.PI-ph;
+        const sqrtF=Math.sqrt(Math.max(.001,F(aType,th3d,0,2)));
+        const rPt=wR*sqrtF;
+        const x=cx+rPt*Math.cos(ph-Math.PI/2);
+        const y=cy+rPt*Math.sin(ph-Math.PI/2);
+        ai===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle=`rgba(14,165,233,${alpha})`;
+      ctx.lineWidth=1.8; ctx.stroke();
+    }
+  }
+
+  // ── Poynting vector arrows ──
+  if(mode==='both'||mode==='S'){
+    const arDirs=[0,20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340];
+    const arRs=[maxR*.3,maxR*.55,maxR*.78];
+    for(const deg of arDirs){
+      const ph=deg*Math.PI/180;
+      const th3d=deg<=180?ph*1:2*Math.PI-ph;
+      const Fv=F(aType,th3d<=Math.PI?th3d:2*Math.PI-th3d,0,2);
+      if(Fv<.08) continue;
+      for(const rD of arRs){
+        const ax=cx+rD*Math.cos(ph-Math.PI/2);
+        const ay=cy+rD*Math.sin(ph-Math.PI/2);
+        const aLen=Math.sqrt(Fv)*16;
+        const dx=Math.cos(ph-Math.PI/2), dy=Math.sin(ph-Math.PI/2);
+        const pulse=.45+.55*(.5+.5*Math.cos(t*3-rD/maxR*5*Math.PI))*Fv;
+        ctx.save(); ctx.globalAlpha=pulse;
+        drawArrow(ctx,ax-dx*aLen*.35,ay-dy*aLen*.35,ax+dx*aLen*.65,ay+dy*aLen*.65,'#2563eb',2,5.5);
+        ctx.restore();
+      }
+    }
+  }
+
+  // ── E-field lines (transverse) ──
+  if(mode==='both'){
+    const eDirs=[45,135,225,315];
+    const eR=maxR*.58;
+    for(const deg of eDirs){
+      const ph=deg*Math.PI/180;
+      const th3d=ph<=Math.PI?ph:2*Math.PI-ph;
+      const Fv=Math.sqrt(F(aType,th3d,0,2));
+      if(Fv<.2) continue;
+      const px=cx+eR*Math.cos(ph-Math.PI/2), py=cy+eR*Math.sin(ph-Math.PI/2);
+      const ex=-Math.sin(ph-Math.PI/2), ey=Math.cos(ph-Math.PI/2);
+      const Eval=Fv*24*Math.sin(t*3-eR/maxR*5*Math.PI);
+      ctx.save(); ctx.globalAlpha=.85;
+      drawArrow(ctx,px-ex*Eval*.5,py-ey*Eval*.5,px+ex*Eval*.5,py+ey*Eval*.5,'#dc2626',2.2,5);
+      ctx.restore();
+    }
+  }
+
+  // ── Antenna symbol ──
+  ctx.save(); ctx.lineWidth=3; ctx.lineCap='round';
+  if(aType==='dipole'||aType==='halfdipole'){
+    ctx.strokeStyle='#1e293b';
+    ctx.beginPath(); ctx.moveTo(cx,cy-24); ctx.lineTo(cx,cy-5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx,cy+5);  ctx.lineTo(cx,cy+24); ctx.stroke();
+    ctx.fillStyle='#f59e0b'; ctx.strokeStyle='#78350f'; ctx.lineWidth=1;
+    ctx.fillRect(cx-5,cy-5,10,10); ctx.strokeRect(cx-5,cy-5,10,10);
+  } else if(aType==='patch'){
+    ctx.fillStyle='#cbd5e1'; ctx.strokeStyle='#475569'; ctx.lineWidth=1.5;
+    ctx.fillRect(cx-20,cy-6,40,12); ctx.strokeRect(cx-20,cy-6,40,12);
+    ctx.font='bold 7px sans-serif'; ctx.fillStyle='#475569'; ctx.textAlign='center';
+    ctx.fillText('patch',cx,cy+3);
+  } else {
+    ctx.beginPath(); ctx.arc(cx,cy,8,0,2*Math.PI);
+    ctx.fillStyle='#2563eb'; ctx.fill();
+    ctx.strokeStyle='#1d4ed8'; ctx.lineWidth=2; ctx.stroke();
+  }
+  ctx.restore();
+
+  // ── Labels ──
+  ctx.save();
+  ctx.font="bold 11px 'Plus Jakarta Sans',sans-serif"; ctx.fillStyle='#475569'; ctx.textAlign='center';
+  ctx.fillText('z (θ=0°)',cx,cy-maxR-12);
+  ctx.textAlign='left';
+  ctx.fillText('θ=90°',cx+maxR+6,cy+4);
+  ctx.font="10px 'Plus Jakarta Sans',sans-serif"; ctx.fillStyle='#94a3b8'; ctx.textAlign='center';
+  const modeLabel=mode==='both'?'S=E×H (blue arrows) · E-field (red arrows) · wavefronts':
+                  mode==='S'?'Poynting vector S = E×H (radially outward, |S| ∝ F²/r²)':
+                  'Wavefronts colored by intensity | brighter = more power flow';
+  ctx.fillText(modeLabel,cx,H-8);
+  ctx.restore();
+}
+
+function drawArrow(ctx,x1,y1,x2,y2,col,lw,hs) {
+  const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
+  if(len<2) return;
+  const ang=Math.atan2(dy,dx);
+  ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=lw; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-hs*Math.cos(ang-.42),y2-hs*Math.sin(ang-.42));
+  ctx.lineTo(x2-hs*Math.cos(ang+.42),y2-hs*Math.sin(ang+.42));
+  ctx.closePath(); ctx.fill();
+}
+
+// ═══════════════════════════════════════
+//   TAB 5 — POWER vs DISTANCE
+// ═══════════════════════════════════════
+function uDens() {
+  const type=$('patD').value, P=+$('s-pd').value,
+        rMax=+$('s-rmax').value, fGHz=+$('s-freq').value;
+  const D=computeD(type,2), lam=3e8/(fGHz*1e9);
+  const rs=Array.from({length:300},(_,i)=>0.5+i*(rMax-.5)/299);
+  const Wdir=rs.map(r=>P*D/(4*Math.PI*r*r));
+  const Wiso=rs.map(r=>P/(4*Math.PI*r*r));
+
+  // Path loss
+  const plAt10=20*Math.log10(4*Math.PI*10/lam);
+  const plAt100=20*Math.log10(4*Math.PI*100/lam);
+  $('wInfo').textContent=
+    `At r=1m: W = ${(P*D/(4*Math.PI)).toExponential(3)} W/m² · At r=10m: ${(P*D/(4*Math.PI*100)).toExponential(3)} W/m²`;
+  $('linkBudget').innerHTML=
+    `EIRP = P × G = ${(P*D).toFixed(2)} W = ${dB(P*D)+33} dBm\n`+
+    `FSPL(10m) = ${plAt10.toFixed(1)} dB  FSPL(100m) = ${plAt100.toFixed(1)} dB\n`+
+    `λ = ${(lam*100).toFixed(2)} cm @ ${fGHz} GHz`;
+
+  const refs=[1,2,5,10,50].filter(v=>v<=rMax);
+  Plotly.react('plotDens',[
+    {x:rs,y:Wdir,name:`${type} (D=${f3(D)})`,line:{color:'#2563eb',width:2.8},type:'scatter'},
+    {x:rs,y:Wiso,name:'Isotropic (D=1)',    line:{color:'#dc2626',width:2,dash:'dot'},type:'scatter'},
+    {x:refs,y:refs.map(r=>P*D/(4*Math.PI*r*r)),mode:'markers',type:'scatter',showlegend:false,
+     marker:{color:'#7c3aed',size:9,symbol:'circle',line:{color:'#fff',width:1.5}},
+     text:refs.map(r=>`r=${r}m → ${(P*D/(4*Math.PI*r*r)).toExponential(3)} W/m²`),hoverinfo:'text'}
+  ],{...PLY,
+    title:{text:`Power Density vs Distance  [P=${P}W, f=${fGHz}GHz, D=${f3(D)}]`,font:{size:12,color:'#1e40af'},x:.5},
+    xaxis:{title:'Distance r [m]',color:'#475569',gridcolor:'#e2e8f0',type:'log',tickfont:{color:'#64748b'}},
+    yaxis:{title:'Power Density W [W/m²]',color:'#475569',gridcolor:'#e2e8f0',type:'log',tickfont:{color:'#64748b'}},
+    legend:{font:{color:'#475569'},bgcolor:'rgba(255,255,255,.9)',x:.98,xanchor:'right'},
+    annotations:[{
+      x:Math.log10(Math.max(rs[20],1)),y:Math.log10(Wdir[20])+.35,xref:'x',yref:'y',
+      text:'slope = −20 dB/decade',showarrow:false,font:{size:9.5,color:'#64748b'},
+      bgcolor:'rgba(255,255,255,.85)',bordercolor:'#e2e8f0',borderwidth:1,borderpad:4
+    }]
+  },{responsive:true});
+}
+
+// ═══════════════════════════════════════
+//   TAB 6 — COMPARE
+// ═══════════════════════════════════════
+function uCmp() {
+  const tA=$('tA').value, tB=$('tB').value;
+  const eA=+$('s-eA').value, eB=+$('s-eB').value;
+  const DA=computeD(tA,2), DB=computeD(tB,2);
+  const GA=eA*DA, GB=eB*DB;
+  const OA=4*Math.PI/DA, OB=4*Math.PI/DB;
+
+  $('cmpKPI').innerHTML=`
+    <div class="sec-hdr" style="margin:0 0 8px">Metrics</div>
+    ${[
+      ['D_max', f3(DA), f3(DB)],
+      ['G_max', f3(GA), f3(GB)],
+      ['G [dBi]', dB(GA)+' dB', dB(GB)+' dB'],
+      ['Ω_A [sr]', f3(OA), f3(OB)],
+    ].map(([lbl,vA,vB])=>{
+      const win=parseFloat(vA)>parseFloat(vB)?'A':'B';
+      return `<div style="font-size:.74rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+          <span style="color:var(--text2);font-weight:700">${lbl}</span>
+          <span style="font-size:.62rem;background:${win==='A'?'var(--primary-l)':'var(--teal-l)'};
+            color:${win==='A'?'var(--primary-d)':'#0e7490'};padding:1px 6px;border-radius:8px;font-weight:800">${win}▲</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="color:var(--primary-d);font-weight:800;font-family:monospace;width:54px">${vA}</span>
+          <span style="color:var(--text3);font-size:.65rem;flex:1;text-align:center">vs</span>
+          <span style="color:#0e7490;font-weight:800;font-family:monospace;width:54px;text-align:right">${vB}</span>
+        </div></div>`;
+    }).join('')}`;
+
+  const N=361;
+  const ths=Array.from({length:N},(_,i)=>i*Math.PI/(N-1));
+  const vA=ths.map(th=>F(tA,th,0,2)), vB=ths.map(th=>F(tB,th,0,2));
+  const mA=Math.max(...vA), mB=Math.max(...vB);
+  const mk=(vs,m)=>{
+    const full=[...vs,...vs.slice(0,-1).reverse()];
+    return full.map(v=>Math.max(-40,20*Math.log10(Math.max(v/m,1e-8))));
+  };
+  const tDeg=[...ths,...ths.slice(0,-1).reverse().map(v=>2*Math.PI-v)].map(v=>v*180/Math.PI);
+  Plotly.react('plotCmp',[
+    {type:'scatterpolar',mode:'lines',r:mk(vA,mA),theta:tDeg,
+     line:{color:'#2563eb',width:2.5},fill:'toself',fillcolor:'rgba(37,99,235,.07)',name:`A: ${tA}  G=${f3(GA)}`},
+    {type:'scatterpolar',mode:'lines',r:mk(vB,mB),theta:tDeg,
+     line:{color:'#0891b2',width:2.5,dash:'dash'},fill:'toself',fillcolor:'rgba(8,145,178,.06)',name:`B: ${tB}  G=${f3(GB)}`},
+  ],{...PLY,
+    polar:{bgcolor:'#f8fafc',
+      angularaxis:{color:'#64748b',gridcolor:'#e2e8f0',tickfont:{color:'#64748b'}},
+      radialaxis:{range:[-40,0],color:'#64748b',gridcolor:'#e2e8f0',tickfont:{color:'#64748b'},title:{text:'dB',font:{color:'#64748b',size:9}}}},
+    title:{text:'Pattern Comparison (dB, each normalized to own peak)',font:{size:12,color:'#1e40af'},x:.5},
+    legend:{font:{color:'#475569'},bgcolor:'rgba(255,255,255,.9)',orientation:'h',x:.5,xanchor:'center',y:-.07},
+    showlegend:true,margin:{t:44,r:20,b:44,l:20}
+  },{responsive:true});
+}
+</script>
+</body>
+</html>
